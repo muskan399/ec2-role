@@ -1,0 +1,5 @@
+---
+# vars file for aws_instances
+key_name: "os_key"
+group_name: "ansible_sg"
+aws_profile: "muskan"

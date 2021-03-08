@@ -1,0 +1,48 @@
+---
+# tasks file for aws_instances
+
+- amazon.aws.ec2:
+    key_name: "{{key_name}}"
+    instance_type: t2.micro
+    image: ami-0eeb03e72075b9bcc
+    wait: yes
+    group_id: sg-00b59370d35349eaa
+    count: 1
+    vpc_subnet_id: subnet-0b57376e8a9e6a464
+    instance_tags:
+            Name: "Master-node"
+    assign_public_ip: yes
+    region: ap-south-1
+  register: a
+
+- debug:
+    var: a.instances[0].public_ip
+
+
+- amazon.aws.ec2:
+    key_name: "{{key_name}}"
+    instance_type: t2.micro
+    image: ami-0eeb03e72075b9bcc
+    wait: yes
+    count: 2
+    group_id: sg-00b59370d35349eaa
+    vpc_subnet_id: subnet-0b57376e8a9e6a464
+    instance_tags:
+            Name: "Slave-node"
+    assign_public_ip: yes
+    region: ap-south-1
+  register: b
+
+- debug:
+    var: b.instances[0].public_ip
+
+- blockinfile:
+    path: /Github_Repository/Role_for_MultiNode_K8s-Cluster_on_AWS/host.txt
+    block: |
+         [local]
+         localhost ansible_user=root password=redhat
+         [master]
+         {{a.instances[0].public_ip}} ansible_user=ec2-user
+         [slave]
+         {{b.instances[0].public_ip}} ansible_user=ec2-user
+         {{b.instances[1].public_ip}} ansible_user=ec2-user   
